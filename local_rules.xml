@@ -1,0 +1,27 @@
+<group name="local,syslog,sshd,pam,">
+
+  <!--
+    Rule 100101 — Possible compromise: a successful login within 5 minutes
+    of an SSH brute-force burst on the same host.
+
+    Design notes (learned the hard way — see README "Detection-engineering log"):
+      - The brute-force burst on this system fires built-in rule 5763
+        (NOT 5712, which is what many tutorials assume).
+      - The successful SSH login is reported by PAM as rule 5501
+        ("PAM: Login session opened"), which does NOT carry a source IP.
+        So we correlate on the `authentication_success` GROUP and a time
+        window, rather than requiring same_srcip (which only the sshd-native
+        success event 5715 would provide).
+    MITRE ATT&CK: T1110.001 (Password Guessing), T1078 (Valid Accounts).
+  -->
+  <rule id="100101" level="12" timeframe="300">
+    <if_group>authentication_success</if_group>
+    <if_matched_sid>5763</if_matched_sid>
+    <description>Possible compromise: successful login within 5 min of an SSH brute-force burst [T1110.001/T1078]</description>
+    <mitre>
+      <id>T1110.001</id>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+</group>
